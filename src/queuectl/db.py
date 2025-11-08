@@ -21,9 +21,11 @@ DB_PATH = BASE_DIR / "queue.db"
 
 # Default config values we will seed (if not present)
 DEFAULT_CONFIG = {
-    "backoff_base": "2",        # base for exponential backoff (string stored)
-    "default_max_retries": "3"  # default max_retries for jobs (string stored)
+    "backoff_base": "2",            # base for exponential backoff (string stored)
+    "default_max_retries": "3",     # default max_retries for jobs (string stored)
+    "job_timeout_seconds": "0"      # default job timeout (0 => no timeout)
 }
+
 
 
 def get_conn():
@@ -41,6 +43,18 @@ def _ensure_pragmas(conn):
     cur.execute("PRAGMA journal_mode = WAL;")
     # Foreign keys if we add relations later
     cur.execute("PRAGMA foreign_keys = ON;")
+    conn.commit()
+
+def _ensure_columns(conn):
+    """Ensure stdout/stderr columns exist in jobs table (migration helper)."""
+    cur = conn.cursor()
+    cur.execute("PRAGMA table_info(jobs);")
+    cols = [r["name"] for r in cur.fetchall()]
+    # Add stdout column if missing
+    if "stdout" not in cols:
+        cur.execute("ALTER TABLE jobs ADD COLUMN stdout TEXT;")
+    if "stderr" not in cols:
+        cur.execute("ALTER TABLE jobs ADD COLUMN stderr TEXT;")
     conn.commit()
 
 
@@ -87,6 +101,9 @@ def init_db():
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_jobs_state_available ON jobs (state, available_at);"
         )
+
+        # Ensure stdout/stderr columns exist (migration)
+        _ensure_columns(conn)
 
         # Create workers table (to track active workers if needed)
         cur.execute(
