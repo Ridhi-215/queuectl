@@ -1,4 +1,4 @@
-﻿$yaml = @'
+
 name: CI
 
 on:
@@ -37,4 +37,3 @@ jobs:
 
       - name: Run functional tests
         run: python tests/run_tests.py
-'@
