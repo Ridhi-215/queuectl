@@ -91,6 +91,7 @@ You can verify schema integrity using:
 python tests\check_schema.py
 ```
 
+---
 
 ## CLI Usage Examples (Windows PowerShell)
 
@@ -285,6 +286,7 @@ Guntur Ridhi
 📧 gunturridhi@gmail.com
 
 🔗 https://github.com/Ridhi-215
+
 
 
 
