@@ -1,0 +1,9 @@
+{
+  "id": "job1",
+  "command": "echo Hello from QueueCTL",
+  "state": "pending",
+  "attempts": 0,
+  "max_retries": 3,
+  "created_at": "2025-11-08T10:30:00Z",
+  "updated_at": "2025-11-08T10:30:00Z"
+}
