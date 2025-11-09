@@ -24,6 +24,7 @@ Watch the full demo here: [Demo Link](https://drive.google.com/drive/folders/1pP
 
 ## Architecture Overview
 
+```
 ┌────────────────────┐
 │ CLI Interface      │ ← queuectl (Python Click)
 └───────┬────────────┘
@@ -45,7 +46,7 @@ Watch the full demo here: [Demo Link](https://drive.google.com/drive/folders/1pP
 │ Persistent Store   │ ← SQLite database (queue.db)
 │ (db.py)            │
 └────────────────────┘
-
+```
 ---
 
 ## Job Lifecycle
@@ -281,6 +282,7 @@ Guntur Ridhi
 📧 gunturridhi@gmail.com
 
 🔗 https://github.com/Ridhi-215
+
 
 
 
