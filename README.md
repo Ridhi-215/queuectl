@@ -267,21 +267,25 @@ Tested on Windows PowerShell (Python 3.11) and Ubuntu Linux.
 
 Job timeout and logging are planned as optional enhancements.
 
-## 🧮 Configuration Defaults
+---
+
+## Configuration Defaults
 
 | Key                      | Default     |   Description               |
 | -------------------------| ----------- |-----------------------------|
 | `default_max_retries`    | 3           |   Maximum retry count       |
 | `backoff_base`           | 2           |   Exponential backoff base  |
 
+---
 
-👨‍💻 Author
+## Author
 
 Guntur Ridhi
 
 📧 gunturridhi@gmail.com
 
 🔗 https://github.com/Ridhi-215
+
 
 
 
