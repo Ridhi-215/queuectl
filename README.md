@@ -1,15 +1,15 @@
-# 🧩 QueueCTL — CLI-Based Background Job Queue System
+# QueueCTL — CLI-Based Background Job Queue System
 
 A **Python-based background job queue system** with CLI control, worker processes, automatic retries (exponential backoff), and a Dead Letter Queue (DLQ).  
 Built as part of the **Flam Backend Internship Assignment**.
 
 ---
 ## 🎥 Demo Video
-Watch the full demo here: [Demo Link](https://drive.google.com/your-demo-link)
+Watch the full demo here: [Demo Link](https://drive.google.com/drive/folders/1pP9eG1tn2ltplAhTtFO6zKgYLfWrGU3G?usp=drive_link)
 
 ---
 
-## 🚀 Features
+## Features
 
 - Enqueue and manage background jobs via CLI
 - Multiple parallel worker processes
@@ -22,31 +22,33 @@ Watch the full demo here: [Demo Link](https://drive.google.com/your-demo-link)
 
 ---
 
-## 🧠 Architecture Overview
+## Architecture Overview
 
 ┌────────────────────┐
-│ CLI Interface │ ← queuectl (Python Click)
+│ CLI Interface      │ ← queuectl (Python Click)
 └───────┬────────────┘
-│
-▼
+        │
+        ▼
 ┌────────────────────┐
-│ Job Manager Layer │ ← Handles enqueue, state transitions,
-│ (manager.py) │ retries, DLQ management
+│ Job Manager Layer  │ ← Handles enqueue, state transitions,
+│ (manager.py)       │ retries, DLQ management
 └───────┬────────────┘
-│
-▼
+        │
+        ▼
 ┌────────────────────┐
-│ Worker Processes │ ← Execute jobs (subprocess),
-│ (worker.py) │ handle backoff & failure
+│ Worker Processes   │ ← Execute jobs (subprocess),
+│ (worker.py)        │ handle backoff & failure
 └───────┬────────────┘
-│
-▼
+        │
+        ▼
 ┌────────────────────┐
-│ Persistent Store │ ← SQLite database (queue.db)
-│ (db.py) │
+│ Persistent Store   │ ← SQLite database (queue.db)
+│ (db.py)            │
 └────────────────────┘
 
-### Job Lifecycle
+---
+
+## Job Lifecycle
 
 | State        | Description                       |
 | ------------ | --------------------------------- |
@@ -58,78 +60,110 @@ Watch the full demo here: [Demo Link](https://drive.google.com/your-demo-link)
 
 ---
 
-## ⚙️ Setup Instructions
+## Setup Instructions
 
-### 🧩 1. Clone the repository
+### 1. Clone the repository
 
-powershell
+```powershell
 git clone https://github.com/<your-username>/queuectl.git
 cd queuectl
+```
 
-### 🐍 2. Create and activate a virtual environment
+### 2. Create and activate a virtual environment
 
+```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
+```
 
-### 📦 3. Install dependencies
+### 3. Install dependencies
 
+```powershell
 pip install -r requirements.txt
+```
 
-### 🏗️ 4. Initialize database (automatically created on first run)
+### 4. Initialize database 
 
-## 💻 CLI Usage Examples (Windows PowerShell)
+The database (src/queue.db) will be created automatically on the first run.
+You can verify schema integrity using:
+```powershell
+python tests\check_schema.py
+```
 
-### 🧾 Enqueue a job
 
-You can enqueue directly from a JSON file:
+## CLI Usage Examples (Windows PowerShell)
+
+### Enqueue a job
 
 Create a simple job JSON
 
 ```powershell
-[System.IO.File]::WriteAllText("job_hello.json", '{"id":"job1","command":"echo Hello from QueueCTL"}', (New-Object System.Text.UTF8Encoding $false))
+[System.IO.File]::WriteAllText("tests/job_hello.json", '{"id":"job1","command":"echo Hello from QueueCTL","state":"pending","attempts":0,"max_retries":3,"created_at":"2025-11-08T10:30:00Z","updated_at":"2025-11-08T10:30:00Z"}', (New-Object System.Text.UTF8Encoding $false))
 ```
 
-Enqueue the job
+Enqueue the job:
 
 ```powershell
-python cli.py enqueue --file job_hello.json
+python cli.py enqueue --file tests/job_hello.json
 ```
-
-⚙️ Start worker(s)
-
-### Start 2 workers
-
-```powershell
-python cli.py worker start --count 2
-```
-
-🛑 Stop workers
-
-```powershell
-python cli.py worker stop
-```
-
-📋 List jobs
+List pending jobs:
 
 ```powershell
 python cli.py list --state pending
 ```
 
-🔁 Retry or check DLQ
+⚙️ Start worker(s)
+
+### Start Worker(s)
+
+Start one or more workers:
+
+```powershell
+python cli.py worker start --count 2
+```
+
+Stop workers gracefully:
+
+```powershell
+python cli.py worker stop
+```
+
+### List jobs
+
+```powershell
+python cli.py list --state pending
+```
+
+### Check System Status
+
+```powershell
+python cli.py status
+```
+
+### Dead Letter Queue (DLQ)
+
+View failed jobs:
 
 ```powershell
 python cli.py dlq list
+```
+Retry a DLQ job:
+
+```powershell
 python cli.py dlq retry job1
 ```
 
-⚙️ Change configuration
+### Configuration Management
 
 ```powershell
 python cli.py config set default_max_retries 5
 python cli.py config set backoff_base 2
+python cli.py config get default_max_retries
 ```
 
-🔄 Retry & Backoff Logic
+---
+
+## Retry & Backoff Logic
 
 When a job fails, it is retried automatically using:
 
@@ -145,19 +179,30 @@ Attempt 3 → delay = 2³ = 8s
 
 After exceeding max_retries, job moves to the Dead Letter Queue.
 
-💾 Persistence
+---
+
+## Persistence
 
 All job data is stored in a local SQLite database:
 
 ```
 src/queue.db
 ```
+Data persists across restarts
+You can verify a job’s state directly:
+```
+python tests\check_job.py
+```
+The schema includes:
+```
+id, command, state, attempts, max_retries, created_at, updated_at, last_error, stdout, stderr
+```
 
-Jobs persist across restarts — stopping and restarting workers or the app will not lose job state.
+---
 
-🧪 Testing Instructions
+## Testing Instructions
 
-A functional test suite is provided at tests/run_tests.py.
+A functional test suite is provided at tests directory.
 
 Run all automated tests:
 
@@ -175,24 +220,41 @@ Test4 PASS: job persisted in DB and pending
 
 ALL TESTS PASSED ✅
 ```
+You can also run individual test utilities:
+```
+python tests\check_schema.py    # Verify DB schema
+python tests\reset_job.py       # Reset job to pending
+python tests\check_job.py       # Inspect specific job record
+
+```
+---
 
 ## 🧱 Project Structure
 
+```
 queuectl/
-├── cli.py # Root launcher
+├── cli.py                    # CLI root launcher
 ├── src/
-│ ├── queuectl/
-│ │ ├── cli.py # CLI command definitions
-│ │ ├── manager.py # Job enqueue, state handling
-│ │ ├── worker.py # Worker processes
-│ │ ├── db.py # SQLite database functions
-│ │ └── utils.py # Helper utilities
-│ └── queue.db # Persistent job store
+│   ├── queuectl/
+│   │   ├── cli.py            # CLI command definitions
+│   │   ├── manager.py        # Job enqueue, state management
+│   │   ├── worker.py         # Worker logic and backoff
+│   │   ├── db.py             # SQLite interface
+│   │   └── utils.py          # Helper utilities
+│   └── queue.db              # Persistent store
 ├── tests/
-│ └── run_tests.py # Automated validation script
+│   ├── check_schema.py
+│   ├── check_job.py
+│   ├── reset_job.py
+│   ├── job1.py
+│   ├── job_hello.json
+│   └── run_tests.py
 └── README.md
 
-## ⚖️ Assumptions & Trade-offs
+```
+---
+
+## Assumptions & Trade-offs
 
 Commands executed via subprocess — sandboxing not included (keep jobs safe).
 
@@ -206,15 +268,19 @@ Job timeout and logging are planned as optional enhancements.
 
 ## 🧮 Configuration Defaults
 
-Key Default Description
-default_max_retries 3 Retry count before DLQ
-backoff_base 2 Exponential backoff base (seconds)
+| Key                      | Default     |   Description               |
+| -------------------------| ----------- |-----------------------------|
+| `default_max_retries`    | 3           |   Maximum retry count       |
+| `backoff_base`           | 2           |   Exponential backoff base  |
+
 
 👨‍💻 Author
 
 Guntur Ridhi
+
 📧 gunturridhi@gmail.com
 
 🔗 https://github.com/Ridhi-215
+
 
 
